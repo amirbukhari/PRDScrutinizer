@@ -23,9 +23,22 @@ If the user has not already specified a refinement mode, ask which one (or offer
 
 The user can switch modes at any point in the loop — the working PRD text and score carry over regardless of which mode produced them.
 
+## Step 0.5 — Ground the analysis in domain research (once per PRD)
+
+Before the *first* analysis pass on a given PRD, do a domain-grounding research pass so your scoring and suggested fixes are anchored in how comparable real systems actually work — not just checked for internal consistency of the document.
+
+- Identify the problem domain / product category the PRD describes (e.g. "checkout flow for e-commerce", "internal admin dashboard for support tickets", "a PRD-completeness scoring tool" — whatever fits).
+- Invoke the `deep-research` skill with a specific, well-scoped question derived from that domain — e.g. "What do existing tools/approaches for [X] typically require, and what technical standards or constraints commonly apply?" Don't hand it the raw PRD or an underspecified prompt — narrow the question yourself first, the way you'd want a vague research request narrowed.
+- From the research report, extract only **objective, well-established, uncontroversial facts** that directly close a gap in the PRD (a typical rate limit, a current library/API version, a regulatory requirement, an industry-standard practice). Insert each one into the working PRD inline as `[RESEARCHED: <fact> — source: <citation>]`, at the point it resolves the gap. These do **not** count toward `unconfirmedAssumptionCount` and do **not** need user confirmation before the score can improve — they're cited facts, not guesses.
+- Anything the research surfaces that's contested, context-dependent, or a genuine product judgment call (not a settled fact) stays an open gap — handle it through the normal Q&A/batch/rewrite flow in Step 3. Never let a research finding substitute for a product decision only the user can make.
+- Track every finding in a `researchFindings` array (question asked, finding, sources) — separate from `gaps` and `detectedAssumptions` in the analysis JSON — and surface it in the Step 2 dashboard.
+- Do this once per PRD, not on every re-analyze loop. Skip it on subsequent passes through Step 1 unless the PRD's subject/domain changed materially or the user explicitly asks you to re-research.
+
 ## Step 1 — Analyze
 
 Read `references/rubric.md` if you haven't already this session. Score the current PRD text against all 11 dimensions, producing the JSON shape documented there. Be a harsh, literal grader — give the AI-implementer's-eye view: "would I have to ask a question or guess here?" If yes, that's a gap, not a nitpick.
+
+Account for any `[RESEARCHED: ...]` markers already in the working PRD from Step 0.5: the dimensions they resolve should score accordingly, and they must not appear in `gaps` or be counted in `unconfirmedAssumptionCount` — only `[ASSUMPTION: ...]` markers count there.
 
 Write the analysis JSON to a temp file (e.g. `/tmp/prd-analysis.json`), including `unconfirmedAssumptionCount` set to however many `[ASSUMPTION: ...]` markers are currently unconfirmed in the working PRD (0 outside of automated-rewrite mode, or once the user has confirmed/removed them all).
 
@@ -42,6 +55,7 @@ Show the user, concisely:
 - Overall confidence: `finalScore`% (and note if `isConfident` is true — that's the "ready to hand to an AI" signal)
 - Per-dimension scores (a compact table is fine)
 - Any `cappedBy` reasons, called out clearly — these are what's actually blocking 95%+
+- Research findings used to ground the analysis, if any (question → finding → source) — distinct from gaps and assumptions, since these are cited facts, not guesses
 - Gaps ranked by severity (blocking first), each with its suggested fix
 - Ambiguous phrases found, with suggested replacements
 - Any contradictions found
@@ -61,6 +75,7 @@ If `isConfident` is true: say so plainly, offer to save the final PRD, and stop 
 
 **Automated rewrite:**
 - Rewrite the *entire* PRD, closing every gap from the analysis. Where you have to make a judgment call the PRD didn't specify, insert `[ASSUMPTION: <the assumption you made>]` inline at the exact point you made it — never silently invent an unstated fact.
+- `[RESEARCHED: ...]` markers from Step 0.5 are different from `[ASSUMPTION: ...]` markers: they're cited facts, not guesses, so they don't need the confirm/reject step below and don't block the score. Mention them in the change log as FYI, but don't add them to the "Assumptions to confirm" list.
 - Also produce a short "Assumptions to confirm" list (one line each, referencing the inline markers) and a change log (what changed, per section, and why).
 - Show the user a diff-style summary (before → after) for the sections that changed materially, not just the raw rewritten text if it's long.
 - Ask the user to confirm, edit, or reject each assumption. Once they respond, update `unconfirmedAssumptionCount` accordingly (it should hit 0 once every assumption is confirmed or resolved) and go back to Step 1 to re-score. Remind them: the score cannot clear 95% while assumptions remain unconfirmed — that's an intentional gate, not a bug.
@@ -70,5 +85,7 @@ If `isConfident` is true: say so plainly, offer to save the final PRD, and stop 
 Keep looping through Step 1 → Step 2 → Step 3 until either:
 - `isConfident` is true, or
 - the user explicitly says to stop.
+
+Step 0.5 (research) runs once per PRD, not on every loop iteration — don't re-invoke `deep-research` on every re-analyze pass.
 
 Don't declare victory based on a raw weighted average alone — always defer to `finalScore` and `cappedBy` from the script. If the user seems to be circling without progress (e.g. the same gap keeps failing to resolve), say so directly rather than continuing to loop silently.

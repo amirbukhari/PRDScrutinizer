@@ -70,6 +70,14 @@ Produce a JSON object (this is what gets written to the analysis file passed to 
     { "description": "...", "locationHintA": "...", "locationHintB": "..." }
   ],
   "detectedAssumptions": ["assumption the PRD makes implicitly without stating it"],
+  "researchFindings": [
+    {
+      "question": "the specific research question asked in Step 0.5",
+      "finding": "the objective, well-established fact found",
+      "sources": ["citation or URL"],
+      "resolvesGapTitle": "title of a gap this finding closes, or null if purely informational"
+    }
+  ],
   "nextQuestion": {
     "targetGapTitle": "the single highest-leverage unresolved gap's title",
     "question": "one specific, answerable clarifying question",
@@ -82,3 +90,13 @@ Produce a JSON object (this is what gets written to the analysis file passed to 
 `nextQuestion` should target whichever unresolved gap most limits the score: prefer `blocking` severity over `major` over `minor`, and prefer higher-weight dimensions when severity ties. Set it to `null` only when there are no unresolved gaps at all.
 
 Set `dimensionScores.acceptanceCriteria < 70` or `flags.acceptanceCriteriaMissing: true` whenever meaningful functional requirements lack a testable criterion — this directly caps the final score regardless of other dimensions (see the scoring gate in `scripts/score.js`).
+
+## Research findings vs. gaps vs. assumptions
+
+These three lists serve different purposes and must not be conflated:
+
+- **`gaps`** — things the PRD doesn't specify and still needs a human decision or input to resolve. Drive the Q&A/batch/rewrite loop.
+- **`detectedAssumptions`** — things the PRD implicitly relies on without stating them, surfaced so the user can see them (not necessarily wrong, just invisible).
+- **`researchFindings`** — objective, cited facts pulled in from outside the PRD (via the `deep-research` skill in Step 0.5) that close a gap without requiring a guess or a user decision. A finding with a non-null `resolvesGapTitle` means that gap should **not** also appear in `gaps` — it's resolved, not open.
+
+A `[RESEARCHED: ...]` marker in the working PRD text is never counted in `unconfirmedAssumptionCount` — only `[ASSUMPTION: ...]` markers are. Research findings raise dimension scores by legitimately closing gaps; they don't need user confirmation the way assumptions do, because they're backed by a citation rather than a guess.
