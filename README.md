@@ -18,22 +18,25 @@ You can switch modes mid-session — the working PRD and score carry over.
 
 ## Install
 
-This is a project-level or personal Claude Code skill (a `SKILL.md` + supporting files), not a package to `npm install`.
+This repo is a Claude Code plugin (with a bundled marketplace manifest), so it installs with two slash commands inside any Claude Code session — no `git clone` required:
 
-**Personal (available in every project):**
+```
+/plugin marketplace add amirbukhari/PRDScrutinizer
+/plugin install prd-scrutinizer@prd-scrutinizer
+```
+
+Then restart/reload plugins (`/reload-plugins` or restart Claude Code) and the skill is available as `/prd-scrutinizer:scrutinize-prd`.
+
+**Manual alternative** (if you'd rather not use the plugin system, or want to hack on it locally first):
 ```bash
+git clone git@github.com:amirbukhari/PRDScrutinizer.git
 mkdir -p ~/.claude/skills
-cp -r skills/scrutinize-prd ~/.claude/skills/scrutinize-prd
+cp -r PRDScrutinizer/skills/scrutinize-prd ~/.claude/skills/scrutinize-prd
 ```
-
-**Project-level (only in a specific repo):**
-```bash
-mkdir -p /path/to/your-project/.claude/skills
-cp -r skills/scrutinize-prd /path/to/your-project/.claude/skills/scrutinize-prd
-```
+(or into a specific project's `.claude/skills/` instead, for project-only use)
 
 Requires Node.js on PATH (used only for `scripts/score.js`, which has zero npm dependencies).
 
 ## Use
 
-In a Claude Code session, invoke it directly by name or just describe the task — e.g. "scrutinize this PRD: `./docs/my-feature-prd.md`" or `/scrutinize-prd docs/my-feature-prd.md`. Claude will walk through analyze → dashboard → refine (in whichever mode you pick) → re-score, looping until confidence hits 95% or you stop.
+Once installed, invoke it directly — e.g. `/prd-scrutinizer:scrutinize-prd docs/my-feature-prd.md` (plugin install) or `/scrutinize-prd docs/my-feature-prd.md` (manual skill install) — or just describe the task, e.g. "scrutinize this PRD: `./docs/my-feature-prd.md`". Claude will walk through analyze → dashboard → refine (in whichever mode you pick) → re-score, looping until confidence hits 95% or you stop.

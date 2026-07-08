@@ -1,0 +1,9 @@
+{
+  "name": "prd-scrutinizer",
+  "description": "Scrutinizes and iteratively refines a PRD until a deterministic confidence score clears 95% — the bar for handing it to an AI to one-shot the implementation.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Amir Bukhari"
+  },
+  "homepage": "https://github.com/amirbukhari/PRDScrutinizer"
+}

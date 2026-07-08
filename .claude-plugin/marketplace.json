@@ -1,0 +1,15 @@
+{
+  "name": "prd-scrutinizer",
+  "description": "A Claude Code plugin that scrutinizes and iteratively refines a PRD until it's ready for AI one-shot implementation.",
+  "owner": {
+    "name": "Amir Bukhari"
+  },
+  "plugins": [
+    {
+      "name": "prd-scrutinizer",
+      "source": "./",
+      "description": "Scrutinizes and iteratively refines a PRD until a deterministic confidence score clears 95% — the bar for handing it to an AI to one-shot the implementation.",
+      "version": "1.0.0"
+    }
+  ]
+}
