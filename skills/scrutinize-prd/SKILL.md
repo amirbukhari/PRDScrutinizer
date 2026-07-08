@@ -17,6 +17,8 @@ Resolve the PRD text: if the user gave a file path, read it. If they pasted text
 
 If the file path doesn't exist or can't be read, say so directly and ask for a corrected path or pasted text — don't proceed as if given an empty PRD. If the resolved PRD text is empty or whitespace-only, say so directly and ask for real content — don't score a blank document.
 
+If the PRD is roughly 8,000 words (~12,000 tokens) or longer, tell the user you're analyzing the full document and confirm you actually did (e.g. note the approximate word count) — don't silently score only part of a long PRD.
+
 If the user has not already specified a refinement mode, ask which one (or offer to run interactive Q&A by default, since it needs the least setup):
 
 1. **Interactive Q&A** — you ask one targeted question at a time; each answer gets merged into a working draft; re-score after each merge; repeat until confident.
