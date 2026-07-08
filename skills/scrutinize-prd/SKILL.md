@@ -13,7 +13,9 @@ This skill's own directory contains:
 
 ## Step 0 — Get the PRD and pick a mode
 
-Resolve the PRD text: if the user gave a file path, read it. If they pasted text or described it inline, work with that directly (and ask where to save refinements before you start editing, if it's not already a file).
+Resolve the PRD text: if the user gave a file path, read it. If they pasted text or described it inline, work with that directly (and ask where to save refinements before you start editing, if it's not already a file; if the user's answer isn't a usable path, ask again rather than guessing a filename).
+
+If the file path doesn't exist or can't be read, say so directly and ask for a corrected path or pasted text — don't proceed as if given an empty PRD. If the resolved PRD text is empty or whitespace-only, say so directly and ask for real content — don't score a blank document.
 
 If the user has not already specified a refinement mode, ask which one (or offer to run interactive Q&A by default, since it needs the least setup):
 
@@ -28,9 +30,10 @@ The user can switch modes at any point in the loop — the working PRD text and 
 Before the *first* analysis pass on a given PRD, do a domain-grounding research pass so your scoring and suggested fixes are anchored in how comparable real systems actually work — not just checked for internal consistency of the document.
 
 - Identify the problem domain / product category the PRD describes (e.g. "checkout flow for e-commerce", "internal admin dashboard for support tickets", "a PRD-completeness scoring tool" — whatever fits).
-- Invoke the `deep-research` skill with a specific, well-scoped question derived from that domain — e.g. "What do existing tools/approaches for [X] typically require, and what technical standards or constraints commonly apply?" Don't hand it the raw PRD or an underspecified prompt — narrow the question yourself first, the way you'd want a vague research request narrowed.
+- Invoke the `deep-research` skill with a specific, well-scoped question derived from that domain — e.g. "What do existing tools/approaches for [X] typically require, and what technical standards or constraints commonly apply?" Don't hand it the raw PRD or an underspecified prompt — narrow the question yourself first, the way you'd want a vague research request narrowed. **The question must describe the general problem category only — never quote proprietary specifics, internal codenames, customer names, or other confidential details from the PRD verbatim**, since that question leaves the local session as a web search.
 - From the research report, extract only **objective, well-established, uncontroversial facts** that directly close a gap in the PRD (a typical rate limit, a current library/API version, a regulatory requirement, an industry-standard practice). Insert each one into the working PRD inline as `[RESEARCHED: <fact> — source: <citation>]`, at the point it resolves the gap. These do **not** count toward `unconfirmedAssumptionCount` and do **not** need user confirmation before the score can improve — they're cited facts, not guesses.
 - Anything the research surfaces that's contested, context-dependent, or a genuine product judgment call (not a settled fact) stays an open gap — handle it through the normal Q&A/batch/rewrite flow in Step 3. Never let a research finding substitute for a product decision only the user can make.
+- If `deep-research` is unavailable, or returns malformed/incomplete/obviously-placeholder output, discard it and proceed as if research were skipped — note in your summary that domain grounding wasn't performed. Never incorporate broken data into the PRD or fabricate a citation.
 - Track every finding in a `researchFindings` array (question asked, finding, sources) — separate from `gaps` and `detectedAssumptions` in the analysis JSON — and surface it in the Step 2 dashboard.
 - Do this once per PRD, not on every re-analyze loop. Skip it on subsequent passes through Step 1 unless the PRD's subject/domain changed materially or the user explicitly asks you to re-research.
 
