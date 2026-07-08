@@ -45,6 +45,8 @@ Read `references/rubric.md` if you haven't already this session. Score the curre
 
 Account for any `[RESEARCHED: ...]` markers already in the working PRD from Step 0.5: the dimensions they resolve should score accordingly, and they must not appear in `gaps` or be counted in `unconfirmedAssumptionCount` — only `[ASSUMPTION: ...]` markers count there.
 
+If you're re-analyzing PRD text that hasn't changed since your last scoring pass earlier in this session, don't raise a dimension score unless the increase is justified by new `[RESEARCHED: ...]` content or something else that actually changed. Unexplained upward drift between passes on unchanged text is a bug, not encouragement.
+
 Write the analysis JSON to a temp file (e.g. `/tmp/prd-analysis.json`), including `unconfirmedAssumptionCount` set to however many `[ASSUMPTION: ...]` markers are currently unconfirmed in the working PRD (0 outside of automated-rewrite mode, or once the user has confirmed/removed them all).
 
 Run:
